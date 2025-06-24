@@ -1,7 +1,16 @@
 # Python
-venv/
+.venv/
 __pycache__/
 *.pyc
 
 # VS Code
 .vscode/
+
+# Node.js
+node_modules/
+dist/
+.env
+
+# Vite/React build artifacts
+.vite/
+*.local
