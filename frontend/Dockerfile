@@ -1,23 +1,16 @@
-# frontend/Dockerfile
-
-# Build the app
-FROM node:22 AS build
-
+# Build stage
+FROM node:22-alpine AS build
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 COPY . .
 RUN npm run build
 
-# Serve the app with a lightweight static server
-FROM nginx:alpine
-
-# Remove default nginx index page
-RUN rm -rf /usr/share/nginx/html/*
-
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Expose port 80 (default Nginx)
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
+# Production stage
+FROM node:22-alpine
+WORKDIR /app
+RUN npm install -g serve
+COPY --from=build /app/dist ./dist
+EXPOSE 3000
+# SPA mode (-s): always serve index.html for client-side routing
+CMD ["serve", "-s", "dist", "-l", "3000"]

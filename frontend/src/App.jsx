@@ -1,8 +1,16 @@
-export default function App() {
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import CreateEvent from "./CreateEvent";
+import EventPage from "./EventPage";
+
+function App() {
   return (
-    <div className="bg-yellow-400 min-h-screen flex flex-col items-center justify-center">
-      <h1 className="text-6xl font-bold text-purple-700">TAILWIND TEST</h1>
-      <p className="text-2xl text-green-600">If you see purple and yellow, Tailwind works!</p>
-    </div>
+    <Router>
+      <Routes>
+        <Route path="/" element={<CreateEvent />} />
+        <Route path="/event/:eventId" element={<EventPage />} />
+      </Routes>
+    </Router>
   );
 }
+
+export default App;
