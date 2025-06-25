@@ -1,22 +1,8 @@
-import { useEffect, useState } from 'react';
-
-function App() {
-  const [backendMessage, setBackendMessage] = useState('');
-
-  useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL || '/api';
-    fetch(`${API_URL}/hello`)
-      .then(res => res.json())
-      .then(data => setBackendMessage(data.message))
-      .catch(() => setBackendMessage('Could not connect to backend'));
-  }, []);
-
+export default function App() {
   return (
-    <div style={{ textAlign: 'center', marginTop: '5rem' }}>
-      <h1>Plan2Meet</h1>
-      <p>Backend says: <b>{backendMessage}</b></p>
+    <div className="bg-yellow-400 min-h-screen flex flex-col items-center justify-center">
+      <h1 className="text-6xl font-bold text-purple-700">TAILWIND TEST</h1>
+      <p className="text-2xl text-green-600">If you see purple and yellow, Tailwind works!</p>
     </div>
   );
 }
-
-export default App;
