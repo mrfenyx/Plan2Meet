@@ -1,4 +1,4 @@
-name: Build and Push Docker Images
+name: Build and Push Docker Image
 
 on:
   workflow_dispatch:
@@ -12,8 +12,7 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     env:
-      FRONTEND_IMAGE: mrfenyx/plan2meet-frontend
-      BACKEND_IMAGE: mrfenyx/plan2meet-backend
+      IMAGE_NAME: mrfenyx/plan2meet
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,22 +26,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push FRONTEND
+      - name: Build and push (custom tag)
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
+          context: .
           push: true
           tags: |
-            ${{ env.FRONTEND_IMAGE }}:${{ github.event.inputs.tag }}
-            ${{ env.FRONTEND_IMAGE }}:latest
-
-      - name: Build and push BACKEND
-        uses: docker/build-push-action@v5
-        with:
-          context: ./backend
-          file: ./backend/Dockerfile
-          push: true
-          tags: |
-            ${{ env.BACKEND_IMAGE }}:${{ github.event.inputs.tag }}
-            ${{ env.BACKEND_IMAGE }}:latest
+            ${{ env.IMAGE_NAME }}:${{ github.event.inputs.tag }}
+            ${{ env.IMAGE_NAME }}:latest
