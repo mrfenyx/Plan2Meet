@@ -9,7 +9,10 @@ services:
       - MONGO_URI=mongodb://mongo:27017/plan2meet
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:5000/api 
     ports:
       - "3000:3000"
     environment:
