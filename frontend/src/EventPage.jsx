@@ -28,7 +28,7 @@ export default function EventPage() {
         if (!res.ok) throw new Error("Event not found");
         const data = await res.json();
         setEvent(data);
-      } catch (err) {
+      } catch {
         setEvent(null);
       }
       setLoading(false);
@@ -49,7 +49,7 @@ export default function EventPage() {
           }))
         );
       });
-  }, [event, participantLoaded]);
+  }, [event, participantLoaded, eventId]);
 
   // When loading an existing participant, set their availability
   useEffect(() => {
@@ -123,7 +123,7 @@ export default function EventPage() {
             );
           });
       }
-    } catch (err) {
+    } catch {
       setSubmitStatus("Network error submitting availability.");
     }
   };
