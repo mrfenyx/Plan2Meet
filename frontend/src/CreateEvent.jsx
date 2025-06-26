@@ -73,56 +73,57 @@ export default function CreateEvent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-b from-white to-blue-50 flex items-center justify-center px-2">
       <form
-        className="w-full max-w-lg bg-white rounded-3xl shadow-2xl p-8 flex flex-col gap-6"
+        className="w-full max-w-md bg-white/80 rounded-2xl shadow-xl p-6 flex flex-col gap-6 border border-gray-100"
         onSubmit={handleSubmit}
       >
-        <h2 className="text-2xl font-bold text-blue-800 text-center">Create Event</h2>
-        <div>
-          <label className="block font-medium mb-1">Event Title</label>
+        <h2 className="text-2xl font-semibold text-blue-900 text-center mb-1">Create Event</h2>
+        <div className="pb-4 flex flex-col gap-2">
+          <label className="block font-medium text-sm">Event Title</label>
           <input
-            className="w-full border rounded-lg p-2"
+            className="w-full border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white/60"
             required
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
-        </div>
-        <div>
-          <label className="block font-medium mb-1">Description</label>
+          <label className="block font-medium text-sm mt-3">Description</label>
           <input
-            className="w-full border rounded-lg p-2"
+            className="w-full border border-gray-200 rounded-md px-3 py-2 focus:outline-none bg-white/60"
             value={description}
             onChange={e => setDescription(e.target.value)}
           />
         </div>
-        <div>
-            <label className="block font-medium mb-1">Date Range</label>
+        <div className="pb-4">
+          <label className="block font-medium text-sm mb-2">Date Range</label>
+          <div className="flex justify-center">
             <DayPicker
-                mode="range"
-                selected={range}
-                onSelect={setRange}
-                numberOfMonths={1}
-                locale={locale}
-                weekStartsOn={locale?.options?.weekStartsOn ?? 1}
-                className="rounded-lg border"
+              mode="range"
+              selected={range}
+              onSelect={setRange}
+              numberOfMonths={1}
+              locale={locale}
+              weekStartsOn={locale?.options?.weekStartsOn ?? 1}
+              className="rounded-xl shadow bg-white"
+              style={{ minWidth: "280px" }}
             />
+          </div>
         </div>
-        <div className="flex gap-4">
-          <div className="flex-1">
-            <label className="block font-medium mb-1">No sooner than</label>
+        <div className="flex gap-3 pb-4">
+          <div className="flex-1 flex flex-col">
+            <label className="font-medium text-sm mb-1">No earlier than</label>
             <select
-              className="w-full border rounded-lg p-2"
+              className="border border-gray-200 rounded-md px-2 py-2 bg-white/60"
               value={fromTime}
               onChange={e => setFromTime(e.target.value)}
             >
               {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
-          <div className="flex-1">
-            <label className="block font-medium mb-1">No later than</label>
+          <div className="flex-1 flex flex-col">
+            <label className="font-medium text-sm mb-1">No later than</label>
             <select
-              className="w-full border rounded-lg p-2"
+              className="border border-gray-200 rounded-md px-2 py-2 bg-white/60"
               value={toTime}
               onChange={e => setToTime(e.target.value)}
             >
@@ -131,9 +132,9 @@ export default function CreateEvent() {
           </div>
         </div>
         <div>
-          <label className="block font-medium mb-1">Time slot step (minutes)</label>
+          <label className="block font-medium text-sm mb-1">Time slot step (minutes)</label>
           <input
-            className="w-full border rounded-lg p-2"
+            className="w-full border border-gray-200 rounded-md px-3 py-2 bg-white/60"
             type="number"
             min={15}
             max={120}
@@ -142,31 +143,49 @@ export default function CreateEvent() {
             onChange={e => setStep(e.target.value)}
           />
         </div>
-        {error && <div className="text-red-600">{error}</div>}
+        {error && <div className="text-red-600 text-center text-sm">{error}</div>}
         <button
-          className="bg-blue-600 text-white rounded-lg py-2 font-bold hover:bg-blue-700 transition"
+          className="w-full mt-2 py-2 rounded-lg border border-blue-300 text-blue-800 bg-white/70 font-medium hover:bg-blue-50 transition"
           type="submit"
           disabled={loading}
         >
           {loading ? "Creating..." : "Create Event"}
         </button>
         {eventId && (
-            <div className="bg-green-50 border border-green-200 p-4 rounded text-center mt-2">
-                <div className="text-green-800 font-medium">Event created!</div>
-                <div className="text-green-600 break-all">
-                Event link:{" "}
-                <a
-                    href={`${window.location.origin}/event/${eventId}`}
-                    className="underline text-blue-700"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    {window.location.origin}/event/{eventId}
-                </a>
-                </div>
+          <div className="bg-green-50 border border-green-200 p-4 rounded text-center mt-2">
+            <div className="text-green-800 font-medium">Event created!</div>
+            <div className="text-green-600 break-all">
+              Event link:{" "}
+              <a
+                href={`${window.location.origin}/event/${eventId}`}
+                className="underline text-blue-700"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {window.location.origin}/event/{eventId}
+              </a>
             </div>
+          </div>
         )}
       </form>
+      {/* Minimal DayPicker custom style */}
+      <style>{`
+        .rdp {
+          margin: 0 auto;
+          --rdp-accent-color: #2563eb;
+          --rdp-background-color: #f1f5f9;
+        }
+        .rdp .rdp-day_selected, .rdp .rdp-day_range_start, .rdp .rdp-day_range_end {
+          background: #2563eb !important;
+          color: #fff !important;
+        }
+        .rdp .rdp-day_range_middle {
+          background: #bfdbfe !important;
+        }
+        .rdp .rdp-day_today {
+          border-color: #2563eb !important;
+        }
+      `}</style>
     </div>
   );
 }
