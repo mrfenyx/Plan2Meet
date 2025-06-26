@@ -141,76 +141,72 @@ export default function EventPage() {
             {event.description && (
               <div className="text-gray-700 mb-4">{event.description}</div>
             )}
-            <form className="space-y-3" onSubmit={handleLoad} autoComplete="off">
-              <div>
-                <label className="block font-medium text-sm mb-1">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  required
-                  className="w-full border border-gray-200 rounded-md px-3 py-2 bg-white/60"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  disabled={participantLoaded}
-                />
-              </div>
-              <div>
-                <label className="block font-medium text-sm mb-1">
-                  Password <span className="text-gray-400">(optional)</span>
-                </label>
-                <input
-                  className="w-full border border-gray-200 rounded-md px-3 py-2 bg-white/60"
-                  type="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                  disabled={participantLoaded}
-                />
-                <div className="text-xs text-gray-500 mt-1">
-                  If you don’t set a password, anyone with this link can modify your availability using your name.<br />
-                  If you use a password, only you can edit your availability for this event.<br />
-                  <b>Password cannot be recovered if lost.</b>
+            {/* LOGIN FORM */}
+            {!participantLoaded && (
+              <form className="space-y-3" onSubmit={handleLoad} autoComplete="off">
+                <div>
+                  <label className="block font-medium text-sm mb-1">
+                    Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    required
+                    className="w-full border border-gray-200 rounded-md px-3 py-2 bg-white/60"
+                    value={name}
+                    onChange={e => setName(e.target.value)}
+                  />
                 </div>
-              </div>
-              {!participantLoaded && (
+                <div>
+                  <label className="block font-medium text-sm mb-1">
+                    Password <span className="text-gray-400">(optional)</span>
+                  </label>
+                  <input
+                    className="w-full border border-gray-200 rounded-md px-3 py-2 bg-white/60"
+                    type="password"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                  />
+                  <div className="text-xs text-gray-500 mt-1">
+                    If you don’t set a password, anyone with this link can modify your availability using your name.<br />
+                    If you use a password, only you can edit your availability for this event.<br />
+                    <b>Password cannot be recovered if lost.</b>
+                  </div>
+                </div>
                 <button
                   className="w-full mt-2 py-2 rounded-lg border border-blue-300 text-blue-800 bg-white/70 font-medium hover:bg-blue-50 transition"
                   type="submit"
                 >
                   Load
                 </button>
-              )}
-              {loadError && (
-                <div className="text-sm text-red-600 text-center">{loadError}</div>
-              )}
-            </form>
-            {participantLoaded && participant && (
-              <div>
-                <div className="mt-6 p-4 bg-blue-50 rounded-xl border text-center text-blue-900">
-                  Welcome, <b>{participant.name}</b>!<br />
-                  {participant.availability
-                    ? "You can update your availability below."
-                    : "You can enter your availability below."}
-                </div>
-                <div className="mt-4">
-                  <AvailabilityGrid
-                    event={event}
-                    participantAvailability={availability}
-                    allAvailabilities={allAvailabilities}
-                    onChange={setAvailability}
-                  />
-                </div>
-                <button
-                  className="mt-4 px-4 py-2 rounded bg-blue-600 text-white font-bold hover:bg-blue-700"
-                  onClick={handleSubmit}
-                  disabled={availability.length === 0}
-                >
-                  Submit Availability
-                </button>
-                {submitStatus && (
-                  <div className="mt-2 text-sm text-blue-700">{submitStatus}</div>
+                {loadError && (
+                  <div className="text-sm text-red-600 text-center">{loadError}</div>
                 )}
-              </div>
+              </form>
+            )}
+
+            {/* AVAILABILITY GRID: always visible below login */}
+            <div className="mt-6">
+              <AvailabilityGrid
+                event={event}
+                allAvailabilities={allAvailabilities}
+                participantAvailability={participantLoaded ? availability : []}
+                onChange={participantLoaded ? setAvailability : undefined}
+                readOnly={!participantLoaded}
+              />
+            </div>
+
+            {/* SUBMIT BUTTON: only if logged in */}
+            {participantLoaded && (
+              <button
+                className="mt-4 px-4 py-2 rounded bg-blue-600 text-white font-bold hover:bg-blue-700"
+                onClick={handleSubmit}
+                disabled={availability.length === 0}
+              >
+                Submit Availability
+              </button>
+            )}
+            {submitStatus && (
+              <div className="mt-2 text-sm text-blue-700">{submitStatus}</div>
             )}
           </>
         )}

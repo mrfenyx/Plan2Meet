@@ -39,6 +39,7 @@ export default function AvailabilityGrid({
   participantAvailability,
   allAvailabilities,
   onChange,
+  readOnly = false,
 }) {
   const dates = generateDateRange(event.date_range.start, event.date_range.end);
   const times = generateTimeSlots(
@@ -58,6 +59,7 @@ export default function AvailabilityGrid({
 
   // Toggle function (add or remove slot)
   const toggleSlot = slot =>
+    onChange &&
     onChange(prev =>
       prev.includes(slot)
         ? prev.filter(s => s !== slot)
@@ -66,17 +68,17 @@ export default function AvailabilityGrid({
 
   return (
     <div className="overflow-x-auto max-w-4xl mx-auto mt-2 select-none">
-      <table className="border-separate border-spacing-0 w-full table-fixed rounded-xl bg-white shadow">
+      <table className="table-fixed border-separate border-spacing-0 w-full rounded-xl bg-white shadow">
         <thead>
           <tr>
-            <th className="w-auto sticky left-0 z-10 border-b py-0.5 px-1 text-xs font-medium text-blue-900 bg-blue-50 text-left">
+            <th className="sticky left-0 w-[60px] z-10 border-b py-0.5 px-1 text-xs font-medium text-blue-900 bg-blue-50 text-left whitespace-nowrap">
               Time
             </th>
             {dates.map((date, i) => (
               <th
                 key={format(date, "yyyy-MM-dd")}
                 className={clsx(
-                  "border-b py-0.5 px-1 text-xs font-medium text-blue-900 bg-blue-50 whitespace-nowrap",
+                  "w-[90px] text-center border-b py-0.5 px-1 text-xs font-medium text-blue-900 bg-blue-50 whitespace-nowrap",
                   i === dates.length - 1 && "rounded-tr-xl"
                 )}
               >
@@ -88,7 +90,7 @@ export default function AvailabilityGrid({
         <tbody>
           {times.map((time, rowIdx) => (
             <tr key={time} className={rowIdx % 2 === 1 ? "bg-blue-50/30" : ""}>
-              <td className="w-auto sticky left-0 z-10 text-xs py-0.5 pl-1 pr-0 text-gray-500 bg-blue-50">
+              <td className="sticky left-0 w-[60px] z-10 text-xs py-0.5 pl-1 pr-0 text-gray-500 bg-blue-50 whitespace-nowrap">
                 {time}
               </td>
               {dates.map((date) => {
@@ -96,18 +98,31 @@ export default function AvailabilityGrid({
                 const userHas = ownSlots.has(slot);
                 const total = (slotToNames[slot] || []).length;
                 return (
-                  <td key={slot} className="py-0.5 px-0">
+                  <td key={slot} className="w-[90px] py-0.5 px-0">
                     <div className="flex h-8 rounded border border-gray-200 shadow-sm bg-white group overflow-hidden select-none">
                       {/* Left: User availability (green when selected) */}
                       <div
                         className={clsx(
-                          "flex-1 flex items-center justify-center cursor-pointer text-base transition rounded-l select-none",
+                          "flex-1 flex items-center justify-center text-base transition rounded-l select-none",
                           userHas
-                            ? "bg-green-400/90 hover:bg-green-500 text-white"
-                            : "bg-gray-100 hover:bg-green-100 text-gray-400"
+                            ? "bg-green-400/90 text-white"
+                            : "bg-gray-100 text-gray-400",
+                          readOnly
+                            ? "cursor-not-allowed opacity-60"
+                            : "cursor-pointer hover:bg-green-100"
                         )}
-                        onClick={() => toggleSlot(slot)}
-                        title={userHas ? "You are available" : "Click to select"}
+                        onClick={
+                          readOnly
+                            ? undefined
+                            : () => toggleSlot(slot)
+                        }
+                        title={
+                          readOnly
+                            ? "Log in to select your availability"
+                            : userHas
+                            ? "You are available"
+                            : "Click to select"
+                        }
                         style={{ minWidth: 0, minHeight: 0, userSelect: "none" }}
                       >
                         {userHas ? "✔" : ""}
@@ -143,9 +158,13 @@ export default function AvailabilityGrid({
         </tbody>
       </table>
       <div className="text-xs text-gray-400 mt-2 text-center">
-        <b>Click</b> a cell to select or deselect your availability.
-        <br />
         <b>Left:</b> Your selection. <b>Right:</b> Number of people available, names on hover.
+        <br />
+        {readOnly && (
+          <span>
+            <b>Log in above to select or update your own availability.</b>
+          </span>
+        )}
       </div>
     </div>
   );
