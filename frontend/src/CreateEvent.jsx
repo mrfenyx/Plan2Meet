@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import { format } from "date-fns";
@@ -21,6 +21,26 @@ export default function CreateEvent() {
   const [eventId, setEventId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [locale, setLocale] = useState();
+
+  useEffect(() => {
+    const loadLocale = async () => {
+      const lang = navigator.language || "en-US";
+      try {
+        const mod = await import(`date-fns/locale/${lang}`);
+        setLocale(mod.default || mod[Object.keys(mod)[0]]);
+      } catch {
+        const short = lang.split("-")[0];
+        try {
+          const mod = await import(`date-fns/locale/${short}`);
+          setLocale(mod.default || mod[Object.keys(mod)[0]]);
+        } catch {
+          setLocale(undefined);
+        }
+      }
+    };
+    loadLocale();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,7 +102,9 @@ export default function CreateEvent() {
                 mode="range"
                 selected={range}
                 onSelect={setRange}
-                numberOfMonths={2}
+                numberOfMonths={1}
+                locale={locale}
+                weekStartsOn={locale?.options?.weekStartsOn ?? 1}
                 className="rounded-lg border"
             />
         </div>
@@ -146,26 +168,5 @@ export default function CreateEvent() {
         )}
       </form>
     </div>
-  );
-}
-
-// Simple wrapper for DateRangePicker
-function DateRangePicker({ range, setRange }) {
-  const [selected, setSelected] = useState(range);
-
-  // Sync with parent state
-  React.useEffect(() => setSelected(range), [range]);
-  React.useEffect(() => setRange(selected), [selected]);
-
-  // Import from react-day-picker
-  const { DateRangePicker: Picker } = require("react-day-picker");
-  return (
-    <Picker
-      mode="range"
-      selected={selected}
-      onSelect={setSelected}
-      numberOfMonths={2}
-      className="rounded-lg border"
-    />
   );
 }
