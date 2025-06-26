@@ -66,6 +66,11 @@ export default function AvailabilityGrid({
         : [...prev, slot]
     );
 
+  const maxTotal = Math.max(
+    0,
+    ...Object.values(slotToNames).map(names => names.length)
+  );
+
   return (
     <div className="overflow-x-auto max-w-4xl mx-auto mt-2 select-none">
       <table className="table-fixed border-separate border-spacing-0 w-full rounded-xl bg-white shadow">
@@ -133,7 +138,8 @@ export default function AvailabilityGrid({
                           "flex-1 flex items-center justify-center text-xs transition cursor-default relative group rounded-r select-none",
                           total > 0
                             ? "bg-blue-200/90 text-blue-800"
-                            : "bg-gray-50 text-gray-300"
+                            : "bg-gray-50 text-gray-300",
+                          total === maxTotal && maxTotal > 0 && "ring-2 ring-amber-400"
                         )}
                         title={
                           total > 0
@@ -142,7 +148,20 @@ export default function AvailabilityGrid({
                         }
                         style={{ minWidth: 0, minHeight: 0, userSelect: "none" }}
                       >
-                        {total > 0 ? total : ""}
+                        {total > 0 ? (
+                          <span className="flex items-center gap-1">
+                            {total}
+                            {total === maxTotal && maxTotal > 0 && (
+                              <span
+                                role="img"
+                                aria-label="most participants"
+                                className="ml-1 text-amber-500 text-lg"
+                              >
+                                👑
+                              </span>
+                            )}
+                          </span>
+                        ) : ""}
                         {total > 0 && (
                           <span className="absolute z-10 left-1/2 -translate-x-1/2 top-full mt-1 bg-white shadow border rounded text-xs p-1 min-w-[80px] opacity-0 group-hover:opacity-100 transition pointer-events-none">
                             {slotToNames[slot].join(", ")}
