@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import AvailabilityGrid from "./AvailabilityGrid";
+import { RefreshCcw, PlusCircle } from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
@@ -131,20 +132,6 @@ export default function EventPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-blue-50 px-2">
-      {/* Back to Create Event Button */}
-      <div className="w-full flex">
-        <button
-          className="inline-flex items-center gap-1 px-3 py-1 mt-4 mb-4 ml-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium shadow transition"
-          onClick={() => navigate("/")}
-          aria-label="Back to create event"
-        >
-          <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 20 20">
-            <path d="M11 17l-5-5m0 0l5-5m-5 5h12" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Back
-        </button>
-      </div>
-
       <div className="w-full max-w-5xl bg-white/80 shadow-xl rounded-2xl p-6 border border-gray-100">
         {loading ? (
           <div className="text-center text-blue-600">Loading event...</div>
@@ -152,7 +139,33 @@ export default function EventPage() {
           <div className="text-center text-red-600">Event not found.</div>
         ) : (
           <>
-            <h2 className="text-2xl font-bold text-blue-900 mb-2">{event.title}</h2>
+            <div className="w-full flex gap-2">
+              <button
+                className="inline-flex items-center gap-1 px-3 py-1 mt-4 mb-4 ml-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium shadow transition"
+                onClick={() => navigate("/")}
+                aria-label="Back to create event"
+              >
+                <PlusCircle className="w-4 h-4" />
+                New Event
+              </button>
+              {participantLoaded && (
+                <button
+                  className="inline-flex items-center gap-1 px-3 py-1 mt-4 mb-4 ml-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 text-sm font-medium shadow transition"
+                  onClick={() => window.location.reload()}
+                  aria-label="Back to event"
+                  type="button"
+                >
+                  <RefreshCcw className="w-4 h-4" />
+                  Back to event
+                </button>
+              )}
+            </div>
+            <h2 className="text-2xl font-bold text-blue-900 mb-2">
+                {event.title}
+                {participantLoaded && name && (
+                    <span className="font-normal text-xl text-blue-700"> – Let’s plan, {name}</span>
+                )}
+            </h2>
             {event.description && (
               <div className="text-gray-700 mb-4">{event.description}</div>
             )}
