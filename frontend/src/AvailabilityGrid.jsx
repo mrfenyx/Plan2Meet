@@ -34,6 +34,10 @@ function slotKey(date, time) {
   return `${format(date, "yyyy-MM-dd")}|${time}`;
 }
 
+// --- Working hours config ---
+const WORK_START = "09:00";
+const WORK_END = "17:00";
+
 export default function AvailabilityGrid({
   event,
   participantAvailability,
@@ -42,7 +46,7 @@ export default function AvailabilityGrid({
   readOnly = false,
 }) {
   const dates = generateDateRange(event.date_range.start, event.date_range.end);
-  const times = generateTimeSlots(
+  const allTimes = generateTimeSlots(
     event.time_range.from,
     event.time_range.to,
     event.time_step_minutes
@@ -74,6 +78,29 @@ export default function AvailabilityGrid({
   // ---- MOBILE MODAL: show names for tapped slot ----
   const [showNamesForSlot, setShowNamesForSlot] = React.useState(null);
 
+  // --- Time filter state: "all", "hide-working", "only-working"
+  const [timeFilter, setTimeFilter] = React.useState("all");
+  React.useEffect(() => {
+    // Optional: load last choice from localStorage
+    const saved = localStorage.getItem("timeFilter");
+    if (saved) setTimeFilter(saved);
+  }, []);
+  React.useEffect(() => {
+    localStorage.setItem("timeFilter", timeFilter);
+  }, [timeFilter]);
+
+  // Time filtering logic
+  let times = allTimes;
+  if (timeFilter === "only-working") {
+    times = allTimes.filter(
+      t => t >= WORK_START && t < WORK_END
+    );
+  } else if (timeFilter === "hide-working") {
+    times = allTimes.filter(
+      t => t < WORK_START || t >= WORK_END
+    );
+  }
+
   // Helper for slot display (date + time)
   function splitSlot(slot) {
     const [date, time] = slot.split("|");
@@ -82,6 +109,40 @@ export default function AvailabilityGrid({
 
   return (
     <div className="overflow-x-auto max-w-4xl mx-auto mt-2 select-none">
+      {/* Time filter toggle */}
+      <div className="flex gap-2 mb-3 justify-center">
+        <button
+          className={`px-3 py-1 rounded-full text-sm font-medium transition ${
+            timeFilter === "all"
+              ? "bg-blue-600 text-white shadow"
+              : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+          }`}
+          onClick={() => setTimeFilter("all")}
+        >
+          Show all
+        </button>
+        <button
+          className={`px-3 py-1 rounded-full text-sm font-medium transition ${
+            timeFilter === "hide-working"
+              ? "bg-blue-600 text-white shadow"
+              : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+          }`}
+          onClick={() => setTimeFilter("hide-working")}
+        >
+          Hide working hours
+        </button>
+        <button
+          className={`px-3 py-1 rounded-full text-sm font-medium transition ${
+            timeFilter === "only-working"
+              ? "bg-blue-600 text-white shadow"
+              : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+          }`}
+          onClick={() => setTimeFilter("only-working")}
+        >
+          Show only working hours
+        </button>
+      </div>
+
       <table className="table-fixed border-separate border-spacing-0 w-full rounded-xl bg-white shadow">
         <thead>
           <tr>
@@ -102,93 +163,101 @@ export default function AvailabilityGrid({
           </tr>
         </thead>
         <tbody>
-          {times.map((time, rowIdx) => (
-            <tr key={time} className={rowIdx % 2 === 1 ? "bg-blue-50/30" : ""}>
-              <td className="sticky left-0 w-[60px] z-10 text-xs py-0.5 pl-1 pr-0 text-gray-500 bg-blue-50 whitespace-nowrap">
-                {time}
+          {times.length === 0 ? (
+            <tr>
+              <td colSpan={dates.length + 1} className="text-center text-gray-500 py-6">
+                No time slots to display for this filter.
               </td>
-              {dates.map((date) => {
-                const slot = slotKey(date, time);
-                const userHas = ownSlots.has(slot);
-                const total = (slotToNames[slot] || []).length;
-                return (
-                  <td key={slot} className="w-[90px] py-0.5 px-0">
-                    <div className="flex h-8 rounded border border-gray-200 shadow-sm bg-white group overflow-hidden select-none">
-                      {/* Left: User availability (green when selected) */}
-                      <div
-                        className={clsx(
-                          "flex-1 flex items-center justify-center text-base transition rounded-l select-none",
-                          userHas
-                            ? "bg-green-400/90 text-white"
-                            : "bg-gray-100 text-gray-400",
-                          readOnly
-                            ? "cursor-not-allowed opacity-60"
-                            : "cursor-pointer hover:bg-green-100"
-                        )}
-                        onClick={
-                          readOnly
-                            ? undefined
-                            : () => toggleSlot(slot)
-                        }
-                        title={
-                          readOnly
-                            ? "Log in to select your availability"
-                            : userHas
-                            ? "You are available"
-                            : "Click to select"
-                        }
-                        style={{ minWidth: 0, minHeight: 0, userSelect: "none" }}
-                      >
-                        {userHas ? "✔" : ""}
-                      </div>
-                      {/* Right: Group availability (blue, count, names on hover, tap for mobile) */}
-                      <div
-                        className={clsx(
-                          "flex-1 flex items-center justify-center text-xs transition cursor-default relative group rounded-r select-none",
-                          total > 0
-                            ? "bg-blue-200/90 text-blue-800"
-                            : "bg-gray-50 text-gray-300",
-                          total === maxTotal && maxTotal > 0 && "ring-2 ring-amber-400"
-                        )}
-                        title={
-                          total > 0
-                            ? "Available: " + slotToNames[slot].join(", ")
-                            : "No one available"
-                        }
-                        style={{ minWidth: 0, minHeight: 0, userSelect: "none" }}
-                        onClick={() => {
-                          // On mobile (screen < 640px), tap shows modal if there are names
-                          if (window.innerWidth < 640 && total > 0) {
-                            setShowNamesForSlot(slot);
-                          }
-                        }}
-                      >
-                        {total > 0 ? (
-                          <span className="flex items-center gap-1">
-                            {total}
-                            {total === maxTotal && maxTotal > 0 && (
-                              <span
-                                role="img"
-                                aria-label="most participants"
-                                className="ml-1 text-amber-500 text-lg"
-                              >
-                                👑
-                              </span>
-                            )}
-                          </span>
-                        ) : ""}
-                        {total > 0 && (
-                          <span className="absolute z-10 left-1/2 -translate-x-1/2 top-full mt-1 bg-white shadow border rounded text-xs p-1 min-w-[80px] opacity-0 group-hover:opacity-100 transition pointer-events-none">
-                            {slotToNames[slot].join(", ")}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                );
-              })}
             </tr>
-          ))}
+          ) : (
+            times.map((time, rowIdx) => (
+              <tr key={time} className={rowIdx % 2 === 1 ? "bg-blue-50/30" : ""}>
+                <td className="sticky left-0 w-[60px] z-10 text-xs py-0.5 pl-1 pr-0 text-gray-500 bg-blue-50 whitespace-nowrap">
+                  {time}
+                </td>
+                {dates.map((date) => {
+                  const slot = slotKey(date, time);
+                  const userHas = ownSlots.has(slot);
+                  const total = (slotToNames[slot] || []).length;
+                  return (
+                    <td key={slot} className="w-[90px] py-0.5 px-0">
+                      <div className="flex h-8 rounded border border-gray-200 shadow-sm bg-white group overflow-hidden select-none">
+                        {/* Left: User availability (green when selected) */}
+                        <div
+                          className={clsx(
+                            "flex-1 flex items-center justify-center text-base transition rounded-l select-none",
+                            userHas
+                              ? "bg-green-400/90 text-white"
+                              : "bg-gray-100 text-gray-400",
+                            readOnly
+                              ? "cursor-not-allowed opacity-60"
+                              : "cursor-pointer hover:bg-green-100"
+                          )}
+                          onClick={
+                            readOnly
+                              ? undefined
+                              : () => toggleSlot(slot)
+                          }
+                          title={
+                            readOnly
+                              ? "Log in to select your availability"
+                              : userHas
+                              ? "You are available"
+                              : "Click to select"
+                          }
+                          style={{ minWidth: 0, minHeight: 0, userSelect: "none" }}
+                        >
+                          {userHas ? "✔" : ""}
+                        </div>
+                        {/* Right: Group availability (blue, count, names on hover, tap for mobile) */}
+                        <div
+                          className={clsx(
+                            "flex-1 flex items-center justify-center text-xs transition cursor-default relative group rounded-r select-none",
+                            total > 0
+                              ? "bg-blue-200/90 text-blue-800"
+                              : "bg-gray-50 text-gray-300",
+                            total === maxTotal && maxTotal > 0 && "ring-2 ring-amber-400"
+                          )}
+                          title={
+                            total > 0
+                              ? "Available: " + slotToNames[slot].join(", ")
+                              : "No one available"
+                          }
+                          style={{ minWidth: 0, minHeight: 0, userSelect: "none" }}
+                          onClick={() => {
+                            // On mobile (screen < 640px), tap shows modal if there are names
+                            if (window.innerWidth < 640 && total > 0) {
+                              setShowNamesForSlot(slot);
+                            }
+                          }}
+                        >
+                          {total > 0 ? (
+                            <span className="flex items-center gap-1">
+                              {total}
+                              {total === maxTotal && maxTotal > 0 && (
+                                <span
+                                  role="img"
+                                  aria-label="most participants"
+                                  className="ml-1 text-amber-500 text-lg"
+                                >
+                                  👑
+                                </span>
+                              )}
+                            </span>
+                          ) : ""}
+                          {total > 0 && (
+                            <span className="absolute z-10 left-1/2 -translate-x-1/2 top-full mt-1 bg-white shadow border rounded text-xs p-1 min-w-[80px] opacity-0 group-hover:opacity-100 transition pointer-events-none">
+                              {slotToNames[slot].join(", ")}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
       <div className="text-xs text-gray-400 mt-2 text-center">
